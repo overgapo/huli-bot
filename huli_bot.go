@@ -4,10 +4,11 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI("69024058:AAHv4XRYX-pyr_-jmnv8PBcrytfrg1OWORo")
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -16,15 +17,21 @@ func main() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	_, err = bot.SetWebhook(tgbotapi.NewWebhookWithCert("https://www.google.com:8443/"+bot.Token, "cert.pem"))
-	if err != nil {
-		log.Fatal(err)
-	}
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
 
-	updates := bot.ListenForWebhook("/" + bot.Token)
-	go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
+	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		log.Printf("%+v\n", update)
+		if update.Message == nil {
+			continue
+		}
+
+		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		msg.ReplyToMessageID = update.Message.MessageID
+
+		bot.Send(msg)
 	}
 }
