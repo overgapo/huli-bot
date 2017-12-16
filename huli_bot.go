@@ -3,7 +3,6 @@ package main
 import (
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -32,6 +31,16 @@ func main() {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 		msg.ReplyToMessageID = update.Message.MessageID
 
+		msg = updateMsg(msg)
+
 		bot.Send(msg)
 	}
+}
+
+func updateMsg(msg tgbotapi.MessageConfig) tgbotapi.MessageConfig {
+	//var addons = []string{", но едя пидор", ", но едя хуй"}
+
+	msg.Text += ", но едя пидор"
+
+	return msg
 }
